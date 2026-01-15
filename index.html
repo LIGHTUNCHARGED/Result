@@ -22,17 +22,21 @@
         }
 
         .container {
-            max-width: 1100px;
-            margin: 40px auto;
+            max-width: 1200px;
+            margin: 20px auto;
             background: var(--card);
             padding: 30px;
             border-radius: 16px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
 
-        header { text-align: center; margin-bottom: 30px; }
+        header { text-align: center; margin-bottom: 20px; }
 
-        .search-container {
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
             position: sticky;
             top: 0;
             background: var(--card);
@@ -41,23 +45,31 @@
         }
 
         .search-input {
-            width: 100%;
-            padding: 15px 20px;
-            font-size: 1rem;
+            flex: 2;
+            min-width: 250px;
+            padding: 12px 20px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             outline: none;
-            transition: border-color 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
-        .search-input:focus { border-color: var(--primary); }
+        .branch-select {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+        }
 
-        .stats { margin: 10px 0; font-size: 0.9rem; color: #64748b; font-weight: 600; }
+        .search-input:focus, .branch-select:focus { border-color: var(--primary); }
+
+        .stats { font-size: 0.9rem; color: #64748b; font-weight: 600; margin-bottom: 10px; }
 
         .table-wrapper { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; }
 
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
 
         th {
             background-color: #f1f5f9;
@@ -66,89 +78,137 @@
             text-transform: uppercase;
             color: #475569;
             text-align: left;
+            cursor: pointer;
+            user-select: none;
         }
 
-        td { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        th:hover { background-color: #e2e8f0; }
+        th::after { content: ' ↕'; opacity: 0.3; }
 
-        .sno-cell { color: #94a3b8; font-weight: 500; }
+        td { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+
         .rank-pill {
             background: #dcfce7;
             color: #166534;
             padding: 3px 8px;
             border-radius: 5px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 700;
         }
-        .sgpa-bold { color: var(--primary); font-weight: 700; }
 
-        #noResults { display: none; text-align: center; padding: 40px; color: #64748b; }
-
-        #loadingOverlay {
-            text-align: center;
-            padding: 50px;
-            font-weight: bold;
-            color: var(--primary);
+        .branch-tag {
+            font-size: 0.7rem;
+            color: #64748b;
+            display: block;
+            line-height: 1.2;
         }
+
+        #loadingOverlay { text-align: center; padding: 50px; color: var(--primary); font-weight: bold; }
+        #noResults { display: none; text-align: center; padding: 40px; color: #64748b; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>NSUT Results 2025</h1>
-        <p>Full Batch List (2,066 Students)</p>
+        <h1>NSUT Result Portal 2025</h1>
+        <p>Full Batch Statistics & Search</p>
     </header>
 
-    <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search by name or roll number...">
-        <div id="stats" class="stats">Initializing...</div>
+    <div class="controls-row">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search Name or Roll No...">
+        <select id="branchFilter" class="branch-select">
+            <option value="">All Branches</option>
+        </select>
     </div>
 
-    <div id="loadingOverlay">Loading Student Data...</div>
+    <div id="stats" class="stats">Loading Student Database...</div>
+    <div id="loadingOverlay">Processing 2,066 Records...</div>
 
     <div class="table-wrapper" id="tableWrapper" style="display:none;">
-        <table>
+        <table id="studentTable">
             <thead>
             <tr>
-                <th>SNo</th>
-                <th>Global Rank</th>
-                <th>Name</th>
-                <th>Roll No</th>
-                <th>SGPA</th>
-                <th>Branch</th>
+                <th onclick="sortTable('SNo')">SNo</th>
+                <th onclick="sortTable('Global Rank')">Rank</th>
+                <th onclick="sortTable('Name')">Name</th>
+                <th onclick="sortTable('Roll No')">Roll No</th>
+                <th onclick="sortTable('SGPA')">SGPA</th>
+                <th onclick="sortTable('Branch')">Branch</th>
             </tr>
             </thead>
             <tbody id="resultsBody"></tbody>
         </table>
     </div>
-    <div id="noResults">No matching students found.</div>
+    <div id="noResults">No students found matching your filters.</div>
 </div>
 
 <script>
     let studentData = [];
+    let currentSort = { column: 'SNo', asc: true };
 
     async function loadData() {
         try {
             const response = await fetch('NSUT_Batch_2025_Results.json');
             studentData = await response.json();
 
-            // Hide loader and show table
+            populateBranchFilter();
             document.getElementById('loadingOverlay').style.display = 'none';
             document.getElementById('tableWrapper').style.display = 'block';
 
-            updateStats(studentData.length);
-            renderTable(studentData); // Loads all 2066 rows
+            applyFilters();
         } catch (e) {
-            document.getElementById('stats').innerText = "Error loading data.";
-            document.getElementById('loadingOverlay').innerText = "Failed to load JSON file.";
+            document.getElementById('stats').innerText = "Error: JSON file not found.";
         }
+    }
+
+    function populateBranchFilter() {
+        const select = document.getElementById('branchFilter');
+        const branches = [...new Set(studentData.map(s => s.Branch))].sort();
+        branches.forEach(branch => {
+            const opt = document.createElement('option');
+            opt.value = branch;
+            opt.textContent = branch;
+            select.appendChild(opt);
+        });
+    }
+
+    function applyFilters() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+        const branchTerm = document.getElementById('branchFilter').value;
+
+        let filtered = studentData.filter(s => {
+            const matchesSearch = s.Name.toLowerCase().includes(searchTerm) ||
+                s['Roll No'].toLowerCase().includes(searchTerm);
+            const matchesBranch = branchTerm === "" || s.Branch === branchTerm;
+            return matchesSearch && matchesBranch;
+        });
+
+        renderTable(filtered);
+        document.getElementById('stats').innerText = `Showing ${filtered.length} of ${studentData.length} students`;
+    }
+
+    function sortTable(column) {
+        currentSort.asc = (currentSort.column === column) ? !currentSort.asc : true;
+        currentSort.column = column;
+
+        studentData.sort((a, b) => {
+            let valA = a[column];
+            let valB = b[column];
+
+            if (typeof valA === 'string') {
+                return currentSort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            } else {
+                return currentSort.asc ? valA - valB : valB - valA;
+            }
+        });
+
+        applyFilters();
     }
 
     function renderTable(data) {
         const tbody = document.getElementById('resultsBody');
         const noResults = document.getElementById('noResults');
-
-
         tbody.innerHTML = '';
 
         if (data.length === 0) {
@@ -157,39 +217,25 @@
         }
 
         noResults.style.display = 'none';
-
         const fragment = document.createDocumentFragment();
 
         data.forEach(student => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="sno-cell">${student.SNo}</td>
+                <td style="color:#94a3b8">${student.SNo}</td>
                 <td><span class="rank-pill">#${student['Global Rank']}</span></td>
                 <td><strong>${student.Name}</strong></td>
                 <td><code>${student['Roll No']}</code></td>
-                <td class="sgpa-bold">${student.SGPA}</td>
-                <td style="font-size: 0.75rem; color: #64748b;">${student.Branch}</td>
+                <td style="font-weight:700; color:#2563eb">${student.SGPA}</td>
+                <td><span class="branch-tag">${student.Branch}</span></td>
             `;
             fragment.appendChild(tr);
         });
-
         tbody.appendChild(fragment);
     }
 
-    function updateStats(count) {
-        document.getElementById('stats').innerText = `Total Students: ${count}`;
-    }
-
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        const val = e.target.value.toLowerCase().trim();
-        const filtered = studentData.filter(s =>
-            s.Name.toLowerCase().includes(val) ||
-            s['Roll No'].toLowerCase().includes(val)
-        );
-
-        renderTable(filtered);
-        updateStats(filtered.length);
-    });
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('branchFilter').addEventListener('change', applyFilters);
 
     loadData();
 </script>
