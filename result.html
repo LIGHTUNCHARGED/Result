@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSUT Result Portal 2025</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        header { text-align: center; margin-bottom: 30px; }
+
+        .search-container {
+            position: sticky;
+            top: 0;
+            background: var(--card);
+            padding: 15px 0;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .search-input:focus { border-color: var(--primary); }
+
+        .stats { margin: 10px 0; font-size: 0.9rem; color: #64748b; font-weight: 600; }
+
+        .table-wrapper { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+
+        th {
+            background-color: #f1f5f9;
+            padding: 12px 15px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #475569;
+            text-align: left;
+        }
+
+        td { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+
+        .sno-cell { color: #94a3b8; font-weight: 500; }
+        .rank-pill {
+            background: #dcfce7;
+            color: #166534;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .sgpa-bold { color: var(--primary); font-weight: 700; }
+
+        #noResults { display: none; text-align: center; padding: 40px; color: #64748b; }
+
+        #loadingOverlay {
+            text-align: center;
+            padding: 50px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>NSUT Results 2025</h1>
+        <p>Full Batch List (2,066 Students)</p>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by name or roll number...">
+        <div id="stats" class="stats">Initializing...</div>
+    </div>
+
+    <div id="loadingOverlay">Loading Student Data...</div>
+
+    <div class="table-wrapper" id="tableWrapper" style="display:none;">
+        <table>
+            <thead>
+            <tr>
+                <th>SNo</th>
+                <th>Global Rank</th>
+                <th>Name</th>
+                <th>Roll No</th>
+                <th>SGPA</th>
+                <th>Branch</th>
+            </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+        </table>
+    </div>
+    <div id="noResults">No matching students found.</div>
+</div>
+
+<script>
+    let studentData = [];
+
+    async function loadData() {
+        try {
+            const response = await fetch('NSUT_Batch_2025_Results.json');
+            studentData = await response.json();
+
+            // Hide loader and show table
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('tableWrapper').style.display = 'block';
+
+            updateStats(studentData.length);
+            renderTable(studentData); // Loads all 2066 rows
+        } catch (e) {
+            document.getElementById('stats').innerText = "Error loading data.";
+            document.getElementById('loadingOverlay').innerText = "Failed to load JSON file.";
+        }
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('resultsBody');
+        const noResults = document.getElementById('noResults');
+
+
+        tbody.innerHTML = '';
+
+        if (data.length === 0) {
+            noResults.style.display = 'block';
+            return;
+        }
+
+        noResults.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+
+        data.forEach(student => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="sno-cell">${student.SNo}</td>
+                <td><span class="rank-pill">#${student['Global Rank']}</span></td>
+                <td><strong>${student.Name}</strong></td>
+                <td><code>${student['Roll No']}</code></td>
+                <td class="sgpa-bold">${student.SGPA}</td>
+                <td style="font-size: 0.75rem; color: #64748b;">${student.Branch}</td>
+            `;
+            fragment.appendChild(tr);
+        });
+
+        tbody.appendChild(fragment);
+    }
+
+    function updateStats(count) {
+        document.getElementById('stats').innerText = `Total Students: ${count}`;
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        const filtered = studentData.filter(s =>
+            s.Name.toLowerCase().includes(val) ||
+            s['Roll No'].toLowerCase().includes(val)
+        );
+
+        renderTable(filtered);
+        updateStats(filtered.length);
+    });
+
+    loadData();
+</script>
+
+</body>
+</html>
