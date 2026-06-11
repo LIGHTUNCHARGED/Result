@@ -310,7 +310,7 @@
 
         .select-wrapper {
             flex: 1;
-            min-width: 200px;
+            min-width: 280px; /* Widened from 200px to avoid text cutoff */
         }
 
         .select-wrapper select {
@@ -407,7 +407,7 @@
             font-size: 0.75rem;
             color: var(--text-muted);
             font-weight: 500;
-            max-width: 280px;
+            max-width: 350px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -637,9 +637,28 @@
     let distributionChart = null;
     let branchChart = null;
 
+    // Helper to get clean and readable branch names without department redundancy
+    function getShortBranchName(fullBranch) {
+        if (!fullBranch || fullBranch === "UNKNOWN") return "Unknown";
+        
+        const isEast = fullBranch.includes("(EAST)");
+        const isWest = fullBranch.includes("(WEST)");
+        
+        let branchPart = fullBranch;
+        if (fullBranch.includes(" - ")) {
+            branchPart = fullBranch.split(" - ")[1].trim();
+        }
+        
+        if (isEast) {
+            return `${branchPart} (East)`;
+        } else if (isWest) {
+            return `${branchPart} (West)`;
+        }
+        return branchPart;
+    }
+
     async function loadData() {
         try {
-            // Check if static scripts loaded global variables
             if (typeof sem1Data === 'undefined' || typeof sem2Data === 'undefined') {
                 throw new Error("Local dataset scripts (NSUT_Batch_2025_Results.js & NSUT_Batch_2025_Sem2_Results.js) were not loaded successfully. Please run generate_results.py to compile the data.");
             }
@@ -787,7 +806,7 @@
                     <div class="topper-name">${topper.name}</div>
                     <div class="topper-roll">${topper.rollNo}</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
-                        ${topper.branch}
+                        ${getShortBranchName(topper.branch)}
                     </div>
                 </div>
                 <div style="text-align: right;">
@@ -804,8 +823,8 @@
         const branches = [...new Set(studentData.map(s => s.branch))].sort();
         branches.forEach(branch => {
             const opt = document.createElement('option');
-            opt.value = branch;
-            opt.textContent = branch;
+            opt.value = branch; // Full name for filtering
+            opt.textContent = getShortBranchName(branch); // Short name for clean visibility
             select.appendChild(opt);
         });
     }
@@ -880,7 +899,7 @@
                 <td><span class="score-val blue">${student.sgpa1 > 0 ? student.sgpa1.toFixed(2) : "RL"}</span></td>
                 <td><span class="score-val purple">${student.sgpa2 > 0 ? student.sgpa2.toFixed(2) : "RL"}</span></td>
                 <td><span class="score-val cyan">${student.cgpa > 0 ? student.cgpa.toFixed(2) : "RL"}</span></td>
-                <td><span class="branch-tag" title="${student.branch}">${student.branch}</span></td>
+                <td><span class="branch-tag" title="${student.branch}">${getShortBranchName(student.branch)}</span></td>
             `;
             fragment.appendChild(tr);
         });
@@ -1023,7 +1042,7 @@
         const branchStats = {};
         studentData.forEach(s => {
             if (s.cgpa <= 0) return;
-            const shortName = s.branch.includes("-") ? s.branch.split("-")[1].trim() : s.branch;
+            const shortName = getShortBranchName(s.branch);
             
             if (!branchStats[shortName]) {
                 branchStats[shortName] = { sum1: 0, count1: 0, sum2: 0, count2: 0, sumCgpa: 0, countCgpa: 0 };
