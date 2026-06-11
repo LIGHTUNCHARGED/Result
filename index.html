@@ -637,7 +637,7 @@
     let distributionChart = null;
     let branchChart = null;
 
-    // Helper to get clean and readable branch names without department redundancy
+    // Helper to get clean and readable branch names using standardized abbreviations
     function getShortBranchName(fullBranch) {
         if (!fullBranch || fullBranch === "UNKNOWN") return "Unknown";
         
@@ -649,12 +649,53 @@
             branchPart = fullBranch.split(" - ")[1].trim();
         }
         
-        if (isEast) {
-            return `${branchPart} (East)`;
-        } else if (isWest) {
-            return `${branchPart} (West)`;
+        const upper = branchPart.toUpperCase();
+        let short = branchPart;
+        
+        if (upper === "COMPUTER SCIENCE AND ENGINEERING") {
+            short = "CSE";
+        } else if (upper === "COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)") {
+            short = "CSE (AI)";
+        } else if (upper === "COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)") {
+            short = "CSE (DS)";
+        } else if (upper === "COMPUTER SCIENCE AND ENGINEERING (BIG DATA ANALYTICS)") {
+            short = "CSE (BDA)";
+        } else if (upper === "COMPUTER SCIENCE AND ENGINEERING (INTERNET OF THINGS)") {
+            short = "CSE (IoT)";
+        } else if (upper === "MATHEMATICS AND COMPUTING") {
+            short = "MAC";
+        } else if (upper === "ELECTRONICS AND COMMUNICATION ENGINEERING") {
+            short = "ECE";
+        } else if (upper === "ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)") {
+            short = "ECE (VLSI)";
+        } else if (upper === "ELECTRONICS AND COMMUNICATION ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)") {
+            short = "ECE (AI & ML)";
+        } else if (upper === "INFORMATION TECHNOLOGY") {
+            short = "IT";
+        } else if (upper === "INFORMATION TECHNOLOGY (NETWORK AND INFORMATION SECURITY)") {
+            short = "IT (NIS)";
+        } else if (upper === "INSTRUMENTATION AND CONTROL ENGINEERING") {
+            short = "ICE";
+        } else if (upper === "ELECTRICAL ENGINEERING") {
+            short = "EE";
+        } else if (upper === "MECHANICAL ENGINEERING") {
+            short = "ME";
+        } else if (upper === "MECHANICAL ENGINEERING (ELECTRIC VEHICLES)") {
+            short = "ME (EV)";
+        } else if (upper === "CIVIL ENGINEERING") {
+            short = "CE";
+        } else if (upper === "BIO TECHNOLOGY" || upper === "BIOTECHNOLOGY") {
+            short = "BT";
+        } else if (upper === "GEOINFORMATICS") {
+            short = "GI";
         }
-        return branchPart;
+        
+        if (isEast) {
+            return `${short} (East)`;
+        } else if (isWest) {
+            return `${short} (West)`;
+        }
+        return short;
     }
 
     async function loadData() {
@@ -704,7 +745,7 @@
                 cgpa = sgpa2;
             }
             
-            cgpa = Number(cgpa.toFixed(2));
+            cgpa = Number(cgpa.toFixed(3));
             const improved = sgpa2 > 0 && sgpa1 > 0 ? Number((sgpa2 - sgpa1).toFixed(2)) : 0.0;
 
             combined.push({
@@ -769,7 +810,7 @@
 
         const validCgpaStudents = studentData.filter(s => s.cgpa > 0);
         const avgCgpa = validCgpaStudents.reduce((sum, s) => sum + s.cgpa, 0) / validCgpaStudents.length;
-        document.getElementById('statAverageCgpa').innerText = avgCgpa.toFixed(2);
+        document.getElementById('statAverageCgpa').innerText = avgCgpa.toFixed(3);
 
         const validSem1 = studentData.filter(s => s.sgpa1 > 0);
         const avgSem1 = validSem1.reduce((sum, s) => sum + s.sgpa1, 0) / validSem1.length;
@@ -779,7 +820,7 @@
         document.getElementById('statAverageCompare').innerText = `Sem 1 Avg: ${avgSem1.toFixed(2)} • Sem 2 Avg: ${avgSem2.toFixed(2)}`;
 
         const highestCgpa = Math.max(...studentData.map(s => s.cgpa));
-        document.getElementById('statHighestCgpa').innerText = highestCgpa.toFixed(2);
+        document.getElementById('statHighestCgpa').innerText = highestCgpa.toFixed(3);
 
         const toppers = studentData.filter(s => s.cgpa === highestCgpa);
         const topperNames = toppers.map(s => s.name).join(", ");
@@ -810,7 +851,7 @@
                     </div>
                 </div>
                 <div style="text-align: right;">
-                    <div class="topper-score">${topper.cgpa.toFixed(2)}</div>
+                    <div class="topper-score">${topper.cgpa.toFixed(3)}</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: bold;">CGPA</div>
                 </div>
             `;
@@ -898,7 +939,7 @@
                 <td><code style="color: #cbd5e1; font-weight: 500;">${student.rollNo}</code></td>
                 <td><span class="score-val blue">${student.sgpa1 > 0 ? student.sgpa1.toFixed(2) : "RL"}</span></td>
                 <td><span class="score-val purple">${student.sgpa2 > 0 ? student.sgpa2.toFixed(2) : "RL"}</span></td>
-                <td><span class="score-val cyan">${student.cgpa > 0 ? student.cgpa.toFixed(2) : "RL"}</span></td>
+                <td><span class="score-val cyan">${student.cgpa > 0 ? student.cgpa.toFixed(3) : "RL"}</span></td>
                 <td><span class="branch-tag" title="${student.branch}">${getShortBranchName(student.branch)}</span></td>
             `;
             fragment.appendChild(tr);
@@ -1060,7 +1101,7 @@
         });
 
         const sortedBranches = Object.keys(branchStats).sort();
-        const avgCgpas = sortedBranches.map(b => Number((branchStats[b].sumCgpa / branchStats[b].countCgpa).toFixed(2)));
+        const avgCgpas = sortedBranches.map(b => Number((branchStats[b].sumCgpa / branchStats[b].countCgpa).toFixed(3)));
         const avgSgpa1 = sortedBranches.map(b => Number((branchStats[b].sum1 / branchStats[b].count1).toFixed(2)));
         const avgSgpa2 = sortedBranches.map(b => Number((branchStats[b].sum2 / branchStats[b].count2).toFixed(2)));
 
@@ -1070,7 +1111,7 @@
         branchChart = new Chart(ctxBranch, {
             type: 'bar',
             data: {
-                labels: sortedBranches.map(name => name.length > 25 ? name.substring(0, 22) + '...' : name),
+                labels: sortedBranches,
                 datasets: [
                     {
                         label: 'Sem 1 Avg',
