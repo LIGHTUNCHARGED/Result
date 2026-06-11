@@ -2,7 +2,8 @@ import json
 import os
 import re
 
-workspace_dir = r"c:\Users\ManitArora\WebstormProjects\Sem 2 Result\Result"
+# Use the directory where this script is located as the workspace directory
+workspace_dir = os.path.dirname(os.path.abspath(__file__))
 sem2_txt_path = os.path.join(workspace_dir, "Gazette Report B Tech Sem 2 2025-26.txt")
 sem2_json_path = os.path.join(workspace_dir, "NSUT_Batch_2025_Sem2_Results.json")
 sem2_js_path = os.path.join(workspace_dir, "NSUT_Batch_2025_Sem2_Results.js")
