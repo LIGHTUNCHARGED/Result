@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSUT B.Tech Batch 2025 Academic Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Static Data Imports (Serverless) -->
+    <script src="NSUT_Batch_2025_Results.js"></script>
+    <script src="NSUT_Batch_2025_Sem2_Results.js"></script>
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #0f172a 70%);
+            --card-bg: rgba(30, 41, 59, 0.45);
+            --card-bg-hover: rgba(30, 41, 59, 0.6);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --card-border-hover: rgba(99, 102, 241, 0.4);
+            
+            --primary: #6366f1; /* Indigo */
+            --primary-glow: rgba(99, 102, 241, 0.15);
+            --secondary: #a855f7; /* Purple */
+            --secondary-glow: rgba(168, 85, 247, 0.15);
+            --accent: #06b6d4; /* Cyan */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --glass-blur: blur(16px);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* Hero Header */
+        header {
+            text-align: center;
+            padding: 20px 0 10px 0;
+            position: relative;
+        }
+
+        header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #a855f7 0%, #6366f1 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.2));
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        header .batch-badge {
+            display: inline-block;
+            margin-top: 10px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #c7d2fe;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            transition: var(--transition);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card:hover {
+            border-color: var(--card-border-hover);
+            box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.15;
+            z-index: 0;
+        }
+
+        .stat-card.blue::before { background: var(--primary); }
+        .stat-card.purple::before { background: var(--secondary); }
+        .stat-card.cyan::before { background: var(--accent); }
+        .stat-card.emerald::before { background: var(--success); }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            z-index: 1;
+        }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            z-index: 1;
+        }
+
+        .stat-desc {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 500;
+            z-index: 1;
+        }
+
+        /* Toppers Gallery */
+        .toppers-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+        }
+
+        .toppers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .topper-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-left: 5px solid transparent;
+        }
+
+        .topper-card.gold { border-left-color: #fbbf24; background: linear-gradient(90deg, rgba(251, 191, 36, 0.05) 0%, var(--card-bg) 100%); }
+        .topper-card.silver { border-left-color: #cbd5e1; background: linear-gradient(90deg, rgba(203, 213, 225, 0.05) 0%, var(--card-bg) 100%); }
+        .topper-card.bronze { border-left-color: #b45309; background: linear-gradient(90deg, rgba(180, 83, 9, 0.05) 0%, var(--card-bg) 100%); }
+
+        .medal-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .topper-card.gold .medal-badge { background: #fbbf24; color: #78350f; }
+        .topper-card.silver .medal-badge { background: #cbd5e1; color: #334155; }
+        .topper-card.bronze .medal-badge { background: #b45309; color: #fef3c7; }
+
+        .topper-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .topper-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .topper-roll {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .topper-score {
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Analytics Tab and Charts */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            width: 100%;
+            position: relative;
+            margin: auto;
+            height: 320px;
+        }
+
+        /* Controls Section */
+        .controls-card {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-wrapper {
+            flex: 2;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-wrapper input {
+            width: 100%;
+            padding: 14px 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .search-wrapper input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .select-wrapper {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .select-wrapper select {
+            width: 100%;
+            padding: 14px 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+            transition: var(--transition);
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 48px;
+        }
+
+        .select-wrapper select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Database Table */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            background: rgba(15, 23, 42, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            min-width: 900px;
+        }
+
+        th {
+            background-color: rgba(15, 23, 42, 0.5);
+            padding: 16px 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition);
+        }
+
+        th:hover {
+            color: var(--text-primary);
+            background-color: rgba(15, 23, 42, 0.8);
+        }
+
+        th::after {
+            content: ' ↕';
+            opacity: 0.3;
+            font-size: 0.9em;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        tr:hover td {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Custom cell elements */
+        .rank-pill {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            display: inline-block;
+        }
+
+        .branch-tag {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+        }
+
+        .score-val {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .score-val.blue { color: var(--primary); }
+        .score-val.purple { color: var(--secondary); }
+        .score-val.cyan { color: var(--accent); }
+
+        /* Pagination */
+        .pagination-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 10px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pagination-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .page-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Loading */
+        #loadingOverlay {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            gap: 15px;
+            color: var(--primary);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--card-border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #errorOverlay {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>NSUT Result Portal</h1>
+        <p>B.Tech Batch of 2025 • First Year Performance Dashboard</p>
+        <span class="batch-badge">Semester 1 & 2 Analytics</span>
+    </header>
+
+    <div id="errorOverlay"></div>
+
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <p style="font-weight: 600;">Parsing Database and Merging Semesters...</p>
+    </div>
+
+    <div id="mainDashboard" style="display: none; flex-direction: column; gap: 30px;">
+        <!-- Analytics Cards -->
+        <div class="stats-grid">
+            <div class="glass-card stat-card blue">
+                <span class="stat-label">Total Students</span>
+                <span class="stat-value" id="statTotalStudents">0</span>
+                <span class="stat-desc">Matched across Sem 1 & 2</span>
+            </div>
+            <div class="glass-card stat-card purple">
+                <span class="stat-label">College Avg CGPA</span>
+                <span class="stat-value" id="statAverageCgpa">0.00</span>
+                <span class="stat-desc" id="statAverageCompare">Sem 1: 0.00 • Sem 2: 0.00</span>
+            </div>
+            <div class="glass-card stat-card cyan">
+                <span class="stat-label">Highest CGPA</span>
+                <span class="stat-value" id="statHighestCgpa">0.00</span>
+                <span class="stat-desc" id="statHighestNames">Loading...</span>
+            </div>
+            <div class="glass-card stat-card emerald">
+                <span class="stat-label">Elite Performers (9+ CGPA)</span>
+                <span class="stat-value" id="stat9PlusCount">0</span>
+                <span class="stat-desc" id="stat9PlusPercent">0% of total batch</span>
+            </div>
+        </div>
+
+        <!-- Toppers Showcase -->
+        <div class="toppers-section">
+            <div class="section-title">🏆 College Toppers Grid</div>
+            <div class="toppers-grid" id="toppersGrid">
+                <!-- Topper Cards will be generated here -->
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="analytics-grid">
+            <div class="glass-card">
+                <div class="section-title" style="margin-bottom: 20px;">📊 CGPA Score Distribution</div>
+                <div class="chart-container">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+            <div class="glass-card">
+                <div class="section-title" style="margin-bottom: 20px;">⚡ Branch Performance Analysis</div>
+                <div class="chart-container">
+                    <canvas id="branchChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls & Table -->
+        <div class="glass-card controls-card">
+            <div class="section-title">🔍 Search & Filter Database</div>
+            <div class="filters-row">
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" placeholder="Search by student name or roll number...">
+                </div>
+                <div class="select-wrapper">
+                    <select id="branchFilter">
+                        <option value="">All Branches</option>
+                    </select>
+                </div>
+                <div class="select-wrapper">
+                    <select id="cgpaFilter">
+                        <option value="">All CGPAs</option>
+                        <option value="9">Elite (CGPA &ge; 9.0)</option>
+                        <option value="8">Very Good (8.0 - 9.0)</option>
+                        <option value="7">Good (7.0 - 8.0)</option>
+                        <option value="6">Average (6.0 - 7.0)</option>
+                        <option value="5">Below Average (&lt; 6.0)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="studentTable">
+                    <thead>
+                    <tr>
+                        <th onclick="sortTable('cgpaRank')">CGPA Rank</th>
+                        <th onclick="sortTable('name')">Name</th>
+                        <th onclick="sortTable('rollNo')">Roll No</th>
+                        <th onclick="sortTable('sgpa1')">Sem 1 SGPA</th>
+                        <th onclick="sortTable('sgpa2')">Sem 2 SGPA</th>
+                        <th onclick="sortTable('cgpa')">CGPA</th>
+                        <th onclick="sortTable('branch')">Branch</th>
+                    </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination-row">
+                <div class="pagination-info" id="paginationInfo">Showing 0-0 of 0 students</div>
+                <div class="pagination-controls" id="paginationControls">
+                    <!-- Dynamic Page Buttons -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let studentData = [];
+    let filteredData = [];
+    let currentSort = { column: 'cgpaRank', asc: true };
+    let currentPage = 1;
+    const pageSize = 25;
+    
+    let distributionChart = null;
+    let branchChart = null;
+
+    async function loadData() {
+        try {
+            // Check if static scripts loaded global variables
+            if (typeof sem1Data === 'undefined' || typeof sem2Data === 'undefined') {
+                throw new Error("Local dataset scripts (NSUT_Batch_2025_Results.js & NSUT_Batch_2025_Sem2_Results.js) were not loaded successfully. Please run generate_results.py to compile the data.");
+            }
+
+            mergeDatasets(sem1Data, sem2Data);
+            
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'flex';
+            
+            populateFilters();
+            applyFilters();
+            renderCharts();
+        } catch (e) {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            const errorDiv = document.getElementById('errorOverlay');
+            errorDiv.innerText = `Error: ${e.message}`;
+            errorDiv.style.display = 'block';
+        }
+    }
+
+    function mergeDatasets(sem1Data, sem2Data) {
+        const sem1Map = new Map(sem1Data.map(s => [s['Roll No'], s]));
+        const sem2Map = new Map(sem2Data.map(s => [s['Roll No'], s]));
+
+        const allRolls = new Set([...sem1Map.keys(), ...sem2Map.keys()]);
+        const combined = [];
+
+        allRolls.forEach(roll => {
+            const s1 = sem1Map.get(roll);
+            const s2 = sem2Map.get(roll);
+
+            const name = (s1 ? s1.Name : (s2 ? s2.Name : "UNKNOWN")).toUpperCase();
+            const branch = s1 ? s1.Branch : (s2 ? s2.Branch : "UNKNOWN");
+            const sgpa1 = s1 ? s1.SGPA : 0.0;
+            const sgpa2 = s2 ? s2.SGPA : 0.0;
+
+            let cgpa = 0.0;
+            if (sgpa1 > 0 && sgpa2 > 0) {
+                cgpa = (sgpa1 + sgpa2) / 2;
+            } else if (sgpa1 > 0) {
+                cgpa = sgpa1;
+            } else if (sgpa2 > 0) {
+                cgpa = sgpa2;
+            }
+            
+            cgpa = Number(cgpa.toFixed(2));
+            const improved = sgpa2 > 0 && sgpa1 > 0 ? Number((sgpa2 - sgpa1).toFixed(2)) : 0.0;
+
+            combined.push({
+                rollNo: roll,
+                name: name,
+                branch: branch,
+                sgpa1: sgpa1,
+                sgpa2: sgpa2,
+                cgpa: cgpa,
+                improved: improved
+            });
+        });
+
+        // Compute overall ranks based on CGPA descending
+        combined.sort((a, b) => {
+            if (b.cgpa !== a.cgpa) return b.cgpa - a.cgpa;
+            if (b.sgpa2 !== a.sgpa2) return b.sgpa2 - a.sgpa2;
+            return b.sgpa1 - a.sgpa1;
+        });
+
+        // Dynamic Global Ranks
+        combined.forEach((s, idx) => {
+            if (idx > 0 && s.cgpa === combined[idx - 1].cgpa) {
+                s.cgpaRank = combined[idx - 1].cgpaRank;
+            } else {
+                s.cgpaRank = idx + 1;
+            }
+        });
+
+        // Dynamic Branch Ranks
+        const branchGroups = {};
+        combined.forEach(s => {
+            if (!branchGroups[s.branch]) {
+                branchGroups[s.branch] = [];
+            }
+            branchGroups[s.branch].push(s);
+        });
+
+        Object.keys(branchGroups).forEach(branchName => {
+            const list = branchGroups[branchName];
+            list.sort((a, b) => {
+                if (b.cgpa !== a.cgpa) return b.cgpa - a.cgpa;
+                if (b.sgpa2 !== a.sgpa2) return b.sgpa2 - a.sgpa2;
+                return b.sgpa1 - a.sgpa1;
+            });
+            list.forEach((s, idx) => {
+                if (idx > 0 && s.cgpa === list[idx - 1].cgpa) {
+                    s.branchRank = list[idx - 1].branchRank;
+                } else {
+                    s.branchRank = idx + 1;
+                }
+            });
+        });
+
+        studentData = combined;
+        calculateSummaryMetrics();
+    }
+
+    function calculateSummaryMetrics() {
+        const total = studentData.length;
+        document.getElementById('statTotalStudents').innerText = total.toLocaleString();
+
+        const validCgpaStudents = studentData.filter(s => s.cgpa > 0);
+        const avgCgpa = validCgpaStudents.reduce((sum, s) => sum + s.cgpa, 0) / validCgpaStudents.length;
+        document.getElementById('statAverageCgpa').innerText = avgCgpa.toFixed(2);
+
+        const validSem1 = studentData.filter(s => s.sgpa1 > 0);
+        const avgSem1 = validSem1.reduce((sum, s) => sum + s.sgpa1, 0) / validSem1.length;
+        
+        const validSem2 = studentData.filter(s => s.sgpa2 > 0);
+        const avgSem2 = validSem2.reduce((sum, s) => sum + s.sgpa2, 0) / validSem2.length;
+        document.getElementById('statAverageCompare').innerText = `Sem 1 Avg: ${avgSem1.toFixed(2)} • Sem 2 Avg: ${avgSem2.toFixed(2)}`;
+
+        const highestCgpa = Math.max(...studentData.map(s => s.cgpa));
+        document.getElementById('statHighestCgpa').innerText = highestCgpa.toFixed(2);
+
+        const toppers = studentData.filter(s => s.cgpa === highestCgpa);
+        const topperNames = toppers.map(s => s.name).join(", ");
+        document.getElementById('statHighestNames').innerText = topperNames.length > 30 ? topperNames.substring(0, 30) + '...' : topperNames;
+
+        const count9Plus = studentData.filter(s => s.cgpa >= 9.0).length;
+        document.getElementById('stat9PlusCount').innerText = count9Plus;
+        document.getElementById('stat9PlusPercent').innerText = `${((count9Plus / total) * 100).toFixed(1)}% of total batch`;
+
+        // Render Topper Cards (Top 3)
+        const toppersGrid = document.getElementById('toppersGrid');
+        toppersGrid.innerHTML = '';
+        
+        const medalThemes = ['gold', 'silver', 'bronze'];
+        const medalEmojis = ['🥇', '🥈', '🥉'];
+        
+        for (let i = 0; i < Math.min(3, studentData.length); i++) {
+            const topper = studentData[i];
+            const div = document.createElement('div');
+            div.className = `glass-card topper-card ${medalThemes[i]}`;
+            div.innerHTML = `
+                <div class="medal-badge">${medalEmojis[i]}</div>
+                <div class="topper-info" style="flex: 1;">
+                    <div class="topper-name">${topper.name}</div>
+                    <div class="topper-roll">${topper.rollNo}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                        ${topper.branch}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="topper-score">${topper.cgpa.toFixed(2)}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: bold;">CGPA</div>
+                </div>
+            `;
+            toppersGrid.appendChild(div);
+        }
+    }
+
+    function populateFilters() {
+        const select = document.getElementById('branchFilter');
+        const branches = [...new Set(studentData.map(s => s.branch))].sort();
+        branches.forEach(branch => {
+            const opt = document.createElement('option');
+            opt.value = branch;
+            opt.textContent = branch;
+            select.appendChild(opt);
+        });
+    }
+
+    function applyFilters() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+        const branchTerm = document.getElementById('branchFilter').value;
+        const cgpaTerm = document.getElementById('cgpaFilter').value;
+
+        filteredData = studentData.filter(s => {
+            const matchesSearch = s.name.toLowerCase().includes(searchTerm) ||
+                s.rollNo.toLowerCase().includes(searchTerm);
+            const matchesBranch = branchTerm === "" || s.branch === branchTerm;
+            
+            let matchesCgpa = true;
+            if (cgpaTerm === "9") matchesCgpa = s.cgpa >= 9.0;
+            else if (cgpaTerm === "8") matchesCgpa = s.cgpa >= 8.0 && s.cgpa < 9.0;
+            else if (cgpaTerm === "7") matchesCgpa = s.cgpa >= 7.0 && s.cgpa < 8.0;
+            else if (cgpaTerm === "6") matchesCgpa = s.cgpa >= 6.0 && s.cgpa < 7.0;
+            else if (cgpaTerm === "5") matchesCgpa = s.cgpa < 6.0;
+
+            return matchesSearch && matchesBranch && matchesCgpa;
+        });
+
+        currentPage = 1;
+        renderTable();
+    }
+
+    function sortTable(column) {
+        currentSort.asc = (currentSort.column === column) ? !currentSort.asc : true;
+        currentSort.column = column;
+
+        studentData.sort((a, b) => {
+            let valA = a[column];
+            let valB = b[column];
+
+            if (valA === null || valA === undefined) valA = 0;
+            if (valB === null || valB === undefined) valB = 0;
+
+            if (typeof valA === 'string') {
+                return currentSort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            } else {
+                return currentSort.asc ? valA - valB : valB - valA;
+            }
+        });
+
+        applyFilters();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('resultsBody');
+        tbody.innerHTML = '';
+
+        const startIdx = (currentPage - 1) * pageSize;
+        const endIdx = Math.min(startIdx + pageSize, filteredData.length);
+        const paginatedData = filteredData.slice(startIdx, endIdx);
+
+        if (filteredData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">No records match your filters.</td></tr>`;
+            document.getElementById('paginationInfo').innerText = "Showing 0 of 0 students";
+            renderPaginationControls(0);
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        paginatedData.forEach(student => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="rank-pill">#${student.cgpaRank}</span></td>
+                <td><strong>${student.name}</strong></td>
+                <td><code style="color: #cbd5e1; font-weight: 500;">${student.rollNo}</code></td>
+                <td><span class="score-val blue">${student.sgpa1 > 0 ? student.sgpa1.toFixed(2) : "RL"}</span></td>
+                <td><span class="score-val purple">${student.sgpa2 > 0 ? student.sgpa2.toFixed(2) : "RL"}</span></td>
+                <td><span class="score-val cyan">${student.cgpa > 0 ? student.cgpa.toFixed(2) : "RL"}</span></td>
+                <td><span class="branch-tag" title="${student.branch}">${student.branch}</span></td>
+            `;
+            fragment.appendChild(tr);
+        });
+        tbody.appendChild(fragment);
+
+        document.getElementById('paginationInfo').innerText = `Showing ${startIdx + 1}-${endIdx} of ${filteredData.length} students`;
+        renderPaginationControls(filteredData.length);
+    }
+
+    function renderPaginationControls(totalItems) {
+        const container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+
+        const totalPages = Math.ceil(totalItems / pageSize);
+        if (totalPages <= 1) return;
+
+        // Prev Button
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerText = '←';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => { currentPage--; renderTable(); };
+        container.appendChild(prevBtn);
+
+        // Page Number Buttons (smart ellipsis version)
+        const range = 2; // how many pages to show around current page
+        let startPage = Math.max(1, currentPage - range);
+        let endPage = Math.min(totalPages, currentPage + range);
+
+        if (startPage > 1) {
+            const btn = document.createElement('button');
+            btn.className = 'page-btn';
+            btn.innerText = '1';
+            btn.onclick = () => { currentPage = 1; renderTable(); };
+            container.appendChild(btn);
+            
+            if (startPage > 2) {
+                const dots = document.createElement('span');
+                dots.innerText = '...';
+                dots.style.padding = '8px 4px';
+                dots.style.color = 'var(--text-muted)';
+                container.appendChild(dots);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = () => { currentPage = i; renderTable(); };
+            container.appendChild(btn);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                const dots = document.createElement('span');
+                dots.innerText = '...';
+                dots.style.padding = '8px 4px';
+                dots.style.color = 'var(--text-muted)';
+                container.appendChild(dots);
+            }
+            const btn = document.createElement('button');
+            btn.className = 'page-btn';
+            btn.innerText = totalPages;
+            btn.onclick = () => { currentPage = totalPages; renderTable(); };
+            container.appendChild(btn);
+        }
+
+        // Next Button
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerText = '→';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => { currentPage++; renderTable(); };
+        container.appendChild(nextBtn);
+    }
+
+    function renderCharts() {
+        // 1. CGPA Distribution Data
+        const ranges = [0, 0, 0, 0, 0]; // <6.0, 6.0-7.0, 7.0-8.0, 8.0-9.0, >=9.0
+        studentData.forEach(s => {
+            if (s.cgpa >= 9.0) ranges[4]++;
+            else if (s.cgpa >= 8.0) ranges[3]++;
+            else if (s.cgpa >= 7.0) ranges[2]++;
+            else if (s.cgpa >= 6.0) ranges[1]++;
+            else if (s.cgpa > 0) ranges[0]++;
+        });
+
+        if (distributionChart) distributionChart.destroy();
+        
+        const ctxDist = document.getElementById('distributionChart').getContext('2d');
+        distributionChart = new Chart(ctxDist, {
+            type: 'bar',
+            data: {
+                labels: ['< 6.0', '6.0 - 7.0', '7.0 - 8.0', '8.0 - 9.0', '≥ 9.0'],
+                datasets: [{
+                    label: 'Number of Students',
+                    data: ranges,
+                    backgroundColor: [
+                        'rgba(99, 102, 241, 0.45)',  // Indigo
+                        'rgba(6, 182, 212, 0.45)',   // Cyan
+                        'rgba(168, 85, 247, 0.45)',  // Purple
+                        'rgba(16, 185, 129, 0.45)',  // Success
+                        'rgba(245, 158, 11, 0.45)'   // Warning
+                    ],
+                    borderColor: [
+                        '#6366f1', '#06b6d4', '#a855f7', '#10b981', '#f59e0b'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.1)'
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: '500' } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: '500' } }
+                    }
+                }
+            }
+        });
+
+        // 2. Branch-wise Performance Data
+        const branchStats = {};
+        studentData.forEach(s => {
+            if (s.cgpa <= 0) return;
+            const shortName = s.branch.includes("-") ? s.branch.split("-")[1].trim() : s.branch;
+            
+            if (!branchStats[shortName]) {
+                branchStats[shortName] = { sum1: 0, count1: 0, sum2: 0, count2: 0, sumCgpa: 0, countCgpa: 0 };
+            }
+            if (s.sgpa1 > 0) {
+                branchStats[shortName].sum1 += s.sgpa1;
+                branchStats[shortName].count1++;
+            }
+            if (s.sgpa2 > 0) {
+                branchStats[shortName].sum2 += s.sgpa2;
+                branchStats[shortName].count2++;
+            }
+            branchStats[shortName].sumCgpa += s.cgpa;
+            branchStats[shortName].countCgpa++;
+        });
+
+        const sortedBranches = Object.keys(branchStats).sort();
+        const avgCgpas = sortedBranches.map(b => Number((branchStats[b].sumCgpa / branchStats[b].countCgpa).toFixed(2)));
+        const avgSgpa1 = sortedBranches.map(b => Number((branchStats[b].sum1 / branchStats[b].count1).toFixed(2)));
+        const avgSgpa2 = sortedBranches.map(b => Number((branchStats[b].sum2 / branchStats[b].count2).toFixed(2)));
+
+        if (branchChart) branchChart.destroy();
+
+        const ctxBranch = document.getElementById('branchChart').getContext('2d');
+        branchChart = new Chart(ctxBranch, {
+            type: 'bar',
+            data: {
+                labels: sortedBranches.map(name => name.length > 25 ? name.substring(0, 22) + '...' : name),
+                datasets: [
+                    {
+                        label: 'Sem 1 Avg',
+                        data: avgSgpa1,
+                        backgroundColor: 'rgba(99, 102, 241, 0.45)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1.5,
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Sem 2 Avg',
+                        data: avgSgpa2,
+                        backgroundColor: 'rgba(168, 85, 247, 0.45)',
+                        borderColor: '#a855f7',
+                        borderWidth: 1.5,
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Overall CGPA',
+                        data: avgCgpas,
+                        backgroundColor: 'rgba(6, 182, 212, 0.6)',
+                        borderColor: '#06b6d4',
+                        borderWidth: 1.5,
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#f8fafc', font: { family: 'Plus Jakarta Sans', weight: '600' } }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1'
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: '500' } }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: '500', size: 10 } }
+                    }
+                }
+            }
+        });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('branchFilter').addEventListener('change', applyFilters);
+    document.getElementById('cgpaFilter').addEventListener('change', applyFilters);
+
+    loadData();
+</script>
+
+</body>
+</html>
