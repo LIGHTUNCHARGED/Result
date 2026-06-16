@@ -11,6 +11,7 @@
     <!-- Static Data Imports (Serverless) -->
     <script src="NSUT_Batch_2025_Results.js"></script>
     <script src="NSUT_Batch_2025_Sem2_Results.js"></script>
+    <script src="NSUT_Batch_2025_Profiles.js"></script>
     <style>
         :root {
             --bg-gradient: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #0f172a 70%);
@@ -509,6 +510,427 @@
             border-radius: 12px;
             font-weight: bold;
         }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 20px;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+        }
+        
+        /* Modal Content Card */
+        .modal-content {
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            background: rgba(30, 41, 59, 0.85) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+            padding: 30px !important;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) rgba(15, 23, 42, 0.3);
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .modal-content::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 4px;
+        }
+        
+        .modal-content::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        
+        /* Close Button */
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 1.8rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.4);
+            transform: rotate(90deg);
+        }
+        
+        /* Profile Header */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+        
+        .profile-meta {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .profile-meta h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .profile-roll {
+            font-family: monospace;
+            font-size: 0.95rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        .profile-father {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .profile-branch {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .profile-cgpa-box {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px 25px;
+            border-radius: 16px;
+            text-align: center;
+            min-width: 180px;
+        }
+        
+        .profile-cgpa-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -0.02em;
+        }
+        
+        .profile-cgpa-lbl {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-top: 2px;
+        }
+        
+        .profile-cgpa-rank {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        
+        .modal-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            margin: 25px 0;
+        }
+        
+        .modal-section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+        
+        /* Progression Cards */
+        .progression-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .prog-card {
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: var(--transition);
+        }
+        
+        .prog-card:hover {
+            border-color: rgba(99, 102, 241, 0.2);
+            background: rgba(15, 23, 42, 0.4);
+        }
+        
+        .prog-card h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-primary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 6px;
+        }
+        
+        .prog-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+        
+        .prog-lbl {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .prog-val {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        /* Progression Timeline */
+        .rank-progression-timeline {
+            display: flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .timeline-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        .step-circle.blue { background: var(--primary); }
+        .step-circle.purple { background: var(--secondary); }
+        .step-circle.cyan { background: var(--accent); }
+        
+        .step-desc {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .step-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .step-value {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .timeline-line {
+            height: 2px;
+            flex: 1;
+            min-width: 30px;
+            background: rgba(255, 255, 255, 0.08);
+            position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .timeline-line {
+                display: none;
+            }
+            .rank-progression-timeline {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+        
+        /* Tabs and Marksheets */
+        .tab-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 10px;
+        }
+        
+        .tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .tab-btn.active {
+            background: var(--primary-glow);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: #c7d2fe;
+        }
+        
+        .marksheet-wrapper {
+            background: rgba(15, 23, 42, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        
+        .marksheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+            min-width: 600px;
+        }
+        
+        .marksheet-table th {
+            background: rgba(15, 23, 42, 0.4);
+            padding: 12px 16px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        
+        .marksheet-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+        }
+        
+        .marksheet-table tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+            color: var(--text-primary);
+        }
+        
+        .marksheet-summary {
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.3);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: right;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Grade Badges */
+        .grade-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-align: center;
+            min-width: 32px;
+        }
+        
+        .grade-badge.o { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .grade-badge.ap { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .grade-badge.a { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+        .grade-badge.bp { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+        .grade-badge.b { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .grade-badge.c { background: rgba(6, 182, 212, 0.15); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .grade-badge.d { background: rgba(245, 158, 11, 0.15); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .grade-badge.f { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .grade-badge.fd { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .grade-badge.rl { background: rgba(100, 116, 139, 0.15); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.3); }
+        .grade-badge.ab { background: rgba(100, 116, 139, 0.15); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.3); }
     </style>
 </head>
 <body>
@@ -622,6 +1044,182 @@
                 <div class="pagination-controls" id="paginationControls">
                     <!-- Dynamic Page Buttons -->
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Profile Modal -->
+<div id="profileModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content glass-card">
+        <button class="close-btn" onclick="closeProfileModal()">&times;</button>
+        <div class="profile-header">
+            <div class="profile-avatar" id="profileAvatar">U</div>
+            <div class="profile-meta">
+                <h2 id="profileName">STUDENT NAME</h2>
+                <div class="profile-roll" id="profileRoll">2025UXX0000</div>
+                <div class="profile-father" id="profileFather">Father: FATHER NAME</div>
+                <div class="profile-branch" id="profileBranch">BRANCH NAME</div>
+            </div>
+            <div class="profile-cgpa-box">
+                <div class="profile-cgpa-val" id="profileCgpa">0.000</div>
+                <div class="profile-cgpa-lbl">OVERALL CGPA</div>
+                <div class="profile-cgpa-rank" id="profileCgpaRank">Rank: #0 (Branch: #0)</div>
+            </div>
+        </div>
+        
+        <div class="modal-divider"></div>
+        
+        <!-- Ranks & Percentiles Progression Grid -->
+        <h3 class="modal-section-title">📊 Ranks & Percentile Progression</h3>
+        <div class="progression-grid">
+            <div class="prog-card">
+                <h4>Semester 1</h4>
+                <div class="prog-stat">
+                    <span class="prog-lbl">SGPA</span>
+                    <span class="prog-val cyan" id="pSem1Sgpa">0.00</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Global Rank</span>
+                    <span class="prog-val" id="pSem1Rank">#0</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Branch Rank</span>
+                    <span class="prog-val" id="pSem1BranchRank">#0</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Global Percentile</span>
+                    <span class="prog-val text-success" id="pSem1Pct">0.00%</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Branch Percentile</span>
+                    <span class="prog-val text-success" id="pSem1BranchPct">0.00%</span>
+                </div>
+            </div>
+            
+            <div class="prog-card">
+                <h4>Semester 2</h4>
+                <div class="prog-stat">
+                    <span class="prog-lbl">SGPA</span>
+                    <span class="prog-val purple" id="pSem2Sgpa">0.00</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Global Rank</span>
+                    <span class="prog-val" id="pSem2Rank">#0</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Branch Rank</span>
+                    <span class="prog-val" id="pSem2BranchRank">#0</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Global Percentile</span>
+                    <span class="prog-val text-success" id="pSem2Pct">0.00%</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Branch Percentile</span>
+                    <span class="prog-val text-success" id="pSem2BranchPct">0.00%</span>
+                </div>
+            </div>
+            
+            <div class="prog-card">
+                <h4>Overall Progression</h4>
+                <div class="prog-stat">
+                    <span class="prog-lbl">CGPA</span>
+                    <span class="prog-val blue" id="pOverallCgpa">0.000</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Global Rank</span>
+                    <span class="prog-val" id="pOverallRank">#0</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Branch Rank</span>
+                    <span class="prog-val" id="pOverallBranchRank">#0</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Global Percentile</span>
+                    <span class="prog-val text-success" id="pOverallPct">0.00%</span>
+                </div>
+                <div class="prog-stat">
+                    <span class="prog-lbl">Branch Percentile</span>
+                    <span class="prog-val text-success" id="pOverallBranchPct">0.00%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Visual Progression Chart Placeholder/Line -->
+        <div class="rank-progression-timeline">
+            <div class="timeline-step">
+                <div class="step-circle blue">1</div>
+                <div class="step-desc">
+                    <div class="step-title">Semester 1 Rank</div>
+                    <div class="step-value" id="tSem1Rank">Global: #0 • Branch: #0</div>
+                </div>
+            </div>
+            <div class="timeline-line"></div>
+            <div class="timeline-step">
+                <div class="step-circle purple">2</div>
+                <div class="step-desc">
+                    <div class="step-title">Semester 2 Rank</div>
+                    <div class="step-value" id="tSem2Rank">Global: #0 • Branch: #0</div>
+                </div>
+            </div>
+            <div class="timeline-line"></div>
+            <div class="timeline-step">
+                <div class="step-circle cyan">🏆</div>
+                <div class="step-desc">
+                    <div class="step-title">Overall CGPA Rank</div>
+                    <div class="step-value" id="tOverallRank">Global: #0 • Branch: #0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-divider"></div>
+        
+        <!-- Detailed Semester Marksheets (Course Grades & Points) -->
+        <div class="tab-controls">
+            <button class="tab-btn active" onclick="switchMarksheetTab('sem1')">Semester 1 Grades</button>
+            <button class="tab-btn" onclick="switchMarksheetTab('sem2')">Semester 2 Grades</button>
+        </div>
+        
+        <div class="marksheet-wrapper" id="sem1Marksheet">
+            <table class="marksheet-table">
+                <thead>
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Course Name</th>
+                        <th>Credits</th>
+                        <th>Grade</th>
+                        <th>Grade Point</th>
+                        <th>CRP</th>
+                    </tr>
+                </thead>
+                <tbody id="sem1GradeBody">
+                    <!-- Dynamic courses -->
+                </tbody>
+            </table>
+            <div class="marksheet-summary" id="sem1MarksheetSummary">
+                Credits Secured: 0/0 • SGPA: 0.00 (Total CRP: 0)
+            </div>
+        </div>
+        
+        <div class="marksheet-wrapper" id="sem2Marksheet" style="display: none;">
+            <table class="marksheet-table">
+                <thead>
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Course Name</th>
+                        <th>Credits</th>
+                        <th>Grade</th>
+                        <th>Grade Point</th>
+                        <th>CRP</th>
+                    </tr>
+                </thead>
+                <tbody id="sem2GradeBody">
+                    <!-- Dynamic courses -->
+                </tbody>
+            </table>
+            <div class="marksheet-summary" id="sem2MarksheetSummary">
+                Credits Secured: 0/0 • SGPA: 0.00 (Total CRP: 0)
             </div>
         </div>
     </div>
@@ -933,6 +1531,8 @@
         const fragment = document.createDocumentFragment();
         paginatedData.forEach(student => {
             const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.onclick = () => showStudentProfile(student.rollNo);
             tr.innerHTML = `
                 <td><span class="rank-pill">#${student.cgpaRank}</span></td>
                 <td><strong>${student.name}</strong></td>
@@ -1171,6 +1771,153 @@
     document.getElementById('searchInput').addEventListener('input', applyFilters);
     document.getElementById('branchFilter').addEventListener('change', applyFilters);
     document.getElementById('cgpaFilter').addEventListener('change', applyFilters);
+
+    function showStudentProfile(rollNo) {
+        const profile = studentProfiles[rollNo];
+        if (!profile) return;
+        
+        // Populate profile metadata
+        document.getElementById('profileName').innerText = profile.name;
+        document.getElementById('profileRoll').innerText = profile.rollNo;
+        document.getElementById('profileFather').innerText = `Father's Name: ${profile.father}`;
+        document.getElementById('profileBranch').innerText = profile.branch;
+        document.getElementById('profileAvatar').innerText = profile.name.charAt(0);
+        
+        // Populate CGPA metrics
+        document.getElementById('profileCgpa').innerText = profile.cgpa > 0 ? profile.cgpa.toFixed(3) : "RL";
+        document.getElementById('profileCgpaRank').innerText = `Global Rank: #${profile.cgpaRank} • Branch Rank: #${profile.cgpaRankBranch}`;
+        
+        // Semester 1 Summary Stats
+        const s1 = profile.sem1;
+        document.getElementById('pSem1Sgpa').innerText = s1.present ? s1.sgpa.toFixed(2) : "N/A";
+        document.getElementById('pSem1Rank').innerText = s1.present ? `#${s1.rank}` : "N/A";
+        document.getElementById('pSem1BranchRank').innerText = s1.present ? `#${s1.rankBranch}` : "N/A";
+        document.getElementById('pSem1Pct').innerText = s1.present ? `${s1.pct.toFixed(2)}%` : "N/A";
+        document.getElementById('pSem1BranchPct').innerText = s1.present ? `${s1.pctBranch.toFixed(2)}%` : "N/A";
+        
+        // Semester 2 Summary Stats
+        const s2 = profile.sem2;
+        document.getElementById('pSem2Sgpa').innerText = s2.present ? s2.sgpa.toFixed(2) : "N/A";
+        document.getElementById('pSem2Rank').innerText = s2.present ? `#${s2.rank}` : "N/A";
+        document.getElementById('pSem2BranchRank').innerText = s2.present ? `#${s2.rankBranch}` : "N/A";
+        document.getElementById('pSem2Pct').innerText = s2.present ? `${s2.pct.toFixed(2)}%` : "N/A";
+        document.getElementById('pSem2BranchPct').innerText = s2.present ? `${s2.pctBranch.toFixed(2)}%` : "N/A";
+        
+        // Overall Summary Stats
+        document.getElementById('pOverallCgpa').innerText = profile.cgpa > 0 ? profile.cgpa.toFixed(3) : "N/A";
+        document.getElementById('pOverallRank').innerText = `#${profile.cgpaRank}`;
+        document.getElementById('pOverallBranchRank').innerText = `#${profile.cgpaRankBranch}`;
+        document.getElementById('pOverallPct').innerText = `${profile.cgpaPct.toFixed(2)}%`;
+        document.getElementById('pOverallBranchPct').innerText = `${profile.cgpaPctBranch.toFixed(2)}%`;
+        
+        // Timeline Details
+        document.getElementById('tSem1Rank').innerText = s1.present ? `Global: #${s1.rank} • Branch: #${s1.rankBranch}` : "Not Registered";
+        document.getElementById('tSem2Rank').innerText = s2.present ? `Global: #${s2.rank} • Branch: #${s2.rankBranch}` : "Not Registered";
+        document.getElementById('tOverallRank').innerText = profile.cgpa > 0 ? `Global: #${profile.cgpaRank} • Branch: #${profile.cgpaRankBranch}` : "No Result";
+        
+        // Sem 1 Grade Body
+        const sem1Body = document.getElementById('sem1GradeBody');
+        sem1Body.innerHTML = '';
+        if (s1.present && s1.courses.length > 0) {
+            s1.courses.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-family: monospace; font-weight: 600; color: #cbd5e1;">${c.code}</td>
+                    <td style="color: var(--text-primary); font-weight: 500;">${c.name}</td>
+                    <td>${c.credits}</td>
+                    <td><span class="grade-badge ${getGradeBadgeClass(c.grade)}">${c.grade}</span></td>
+                    <td style="font-weight: 600;">${c.gp}</td>
+                    <td style="font-weight: 600; color: var(--text-primary);">${c.crp}</td>
+                `;
+                sem1Body.appendChild(tr);
+            });
+            document.getElementById('sem1MarksheetSummary').innerText = `Credits Secured: ${s1.cs}/${s1.tot_cr} • SGPA: ${s1.sgpa_str} (Total CRP: ${s1.tot_crp})`;
+        } else {
+            sem1Body.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">No records available for Semester 1.</td></tr>`;
+            document.getElementById('sem1MarksheetSummary').innerText = `Not Registered`;
+        }
+        
+        // Sem 2 Grade Body
+        const sem2Body = document.getElementById('sem2GradeBody');
+        sem2Body.innerHTML = '';
+        if (s2.present && s2.courses.length > 0) {
+            s2.courses.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-family: monospace; font-weight: 600; color: #cbd5e1;">${c.code}</td>
+                    <td style="color: var(--text-primary); font-weight: 500;">${c.name}</td>
+                    <td>${c.credits}</td>
+                    <td><span class="grade-badge ${getGradeBadgeClass(c.grade)}">${c.grade}</span></td>
+                    <td style="font-weight: 600;">${c.gp}</td>
+                    <td style="font-weight: 600; color: var(--text-primary);">${c.crp}</td>
+                `;
+                sem2Body.appendChild(tr);
+            });
+            document.getElementById('sem2MarksheetSummary').innerText = `Credits Secured: ${s2.cs}/${s2.tot_cr} • SGPA: ${s2.sgpa_str} (Total CRP: ${s2.tot_crp})`;
+        } else {
+            sem2Body.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">No records available for Semester 2.</td></tr>`;
+            document.getElementById('sem2MarksheetSummary').innerText = `Not Registered`;
+        }
+        
+        // Reset tabs
+        switchMarksheetTab('sem1');
+        
+        // Open modal
+        const modal = document.getElementById('profileModal');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+    }
+    
+    function closeProfileModal() {
+        const modal = document.getElementById('profileModal');
+        modal.classList.remove('active');
+        setTimeout(() => modal.style.display = 'none', 300);
+    }
+    
+    function getGradeBadgeClass(grade) {
+        const g = grade.toUpperCase();
+        if (g === 'O') return 'o';
+        if (g === 'A+') return 'ap';
+        if (g === 'A') return 'a';
+        if (g === 'B+') return 'bp';
+        if (g === 'B') return 'b';
+        if (g === 'C') return 'c';
+        if (g === 'D') return 'd';
+        if (g === 'F') return 'f';
+        if (g === 'FD') return 'fd';
+        if (g === 'RL') return 'rl';
+        if (g === 'AB') return 'ab';
+        return 'rl';
+    }
+    
+    function switchMarksheetTab(sem) {
+        const btn1 = document.querySelectorAll('.tab-btn')[0];
+        const btn2 = document.querySelectorAll('.tab-btn')[1];
+        const sheet1 = document.getElementById('sem1Marksheet');
+        const sheet2 = document.getElementById('sem2Marksheet');
+        
+        if (sem === 'sem1') {
+            btn1.classList.add('active');
+            btn2.classList.remove('active');
+            sheet1.style.display = 'block';
+            sheet2.style.display = 'none';
+        } else {
+            btn1.classList.remove('active');
+            btn2.classList.add('active');
+            sheet1.style.display = 'none';
+            sheet2.style.display = 'block';
+        }
+    }
+    
+    // Close modal on escape key or outer click
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeProfileModal();
+    });
+    
+    document.addEventListener('click', (e) => {
+        const modal = document.getElementById('profileModal');
+        if (e.target === modal) closeProfileModal();
+    });
 
     loadData();
 </script>
