@@ -37,7 +37,7 @@ COURSE_NAMES = {
     "FCMT007": "Mathematics-I",
     "FCMT0201": "Applied Mathematics-II",
     "FCPH0104": "Introduction to Electromagnetic Theory",
-    "FCPH0114": "Introduction to Electromagnetic Theory",
+    "FCPH0114": "Quantum Physics",
     "FCPH0124": "Introduction to Electromagnetic Theory",
     "FCPH004": "Introduction to Electromagnetic Theory",
     "FCCW0106": "Python Programming",
