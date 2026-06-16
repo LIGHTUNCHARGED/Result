@@ -1026,7 +1026,8 @@
                 <table id="studentTable">
                     <thead>
                     <tr>
-                        <th onclick="sortTable('cgpaRank')">CGPA Rank</th>
+                        <th onclick="sortTable('cgpaRank')">Global Rank</th>
+                        <th onclick="sortTable('branchRank')">Branch Rank</th>
                         <th onclick="sortTable('name')">Name</th>
                         <th onclick="sortTable('rollNo')">Roll No</th>
                         <th onclick="sortTable('sgpa1')">Sem 1 SGPA</th>
@@ -1058,7 +1059,6 @@
             <div class="profile-meta">
                 <h2 id="profileName">STUDENT NAME</h2>
                 <div class="profile-roll" id="profileRoll">2025UXX0000</div>
-                <div class="profile-father" id="profileFather">Father: FATHER NAME</div>
                 <div class="profile-branch" id="profileBranch">BRANCH NAME</div>
             </div>
             <div class="profile-cgpa-box">
@@ -1503,6 +1503,19 @@
             if (valA === null || valA === undefined) valA = 0;
             if (valB === null || valB === undefined) valB = 0;
 
+            if (column === 'branch') {
+                if (valA === valB) {
+                    return a.cgpaRank - b.cgpaRank; // Secondary sort by Global Rank ascending
+                }
+                return currentSort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+
+            if (column === 'branchRank') {
+                if (valA === valB) {
+                    return a.branch.localeCompare(b.branch);
+                }
+            }
+
             if (typeof valA === 'string') {
                 return currentSort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             } else {
@@ -1522,7 +1535,7 @@
         const paginatedData = filteredData.slice(startIdx, endIdx);
 
         if (filteredData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">No records match your filters.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">No records match your filters.</td></tr>`;
             document.getElementById('paginationInfo').innerText = "Showing 0 of 0 students";
             renderPaginationControls(0);
             return;
@@ -1535,6 +1548,7 @@
             tr.onclick = () => showStudentProfile(student.rollNo);
             tr.innerHTML = `
                 <td><span class="rank-pill">#${student.cgpaRank}</span></td>
+                <td><span class="rank-pill font-mono" style="background: rgba(168, 85, 247, 0.1); color: var(--secondary); border-color: rgba(168, 85, 247, 0.2);">#${student.branchRank}</span></td>
                 <td><strong>${student.name}</strong></td>
                 <td><code style="color: #cbd5e1; font-weight: 500;">${student.rollNo}</code></td>
                 <td><span class="score-val blue">${student.sgpa1 > 0 ? student.sgpa1.toFixed(2) : "RL"}</span></td>
@@ -1779,7 +1793,6 @@
         // Populate profile metadata
         document.getElementById('profileName').innerText = profile.name;
         document.getElementById('profileRoll').innerText = profile.rollNo;
-        document.getElementById('profileFather').innerText = `Father's Name: ${profile.father}`;
         document.getElementById('profileBranch').innerText = profile.branch;
         document.getElementById('profileAvatar').innerText = profile.name.charAt(0);
         
