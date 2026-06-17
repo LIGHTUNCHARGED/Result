@@ -571,9 +571,6 @@
         
         /* Close Button */
         .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--text-secondary);
@@ -632,9 +629,7 @@
             font-size: 1.8rem;
             font-weight: 800;
             letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-primary);
         }
         
         .profile-roll {
@@ -1053,7 +1048,9 @@
 <!-- Student Profile Modal -->
 <div id="profileModal" class="modal-overlay" style="display: none;">
     <div class="modal-content glass-card">
-        <button class="close-btn" onclick="closeProfileModal()">&times;</button>
+        <div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: -5px; position: relative; z-index: 10;">
+            <button class="close-btn" onclick="closeProfileModal()">&times;</button>
+        </div>
         <div class="profile-header">
             <div class="profile-avatar" id="profileAvatar">U</div>
             <div class="profile-meta">
@@ -1146,32 +1143,7 @@
             </div>
         </div>
         
-        <!-- Visual Progression Chart Placeholder/Line -->
-        <div class="rank-progression-timeline">
-            <div class="timeline-step">
-                <div class="step-circle blue">1</div>
-                <div class="step-desc">
-                    <div class="step-title">Semester 1 Rank</div>
-                    <div class="step-value" id="tSem1Rank">Global: #0 • Branch: #0</div>
-                </div>
-            </div>
-            <div class="timeline-line"></div>
-            <div class="timeline-step">
-                <div class="step-circle purple">2</div>
-                <div class="step-desc">
-                    <div class="step-title">Semester 2 Rank</div>
-                    <div class="step-value" id="tSem2Rank">Global: #0 • Branch: #0</div>
-                </div>
-            </div>
-            <div class="timeline-line"></div>
-            <div class="timeline-step">
-                <div class="step-circle cyan">🏆</div>
-                <div class="step-desc">
-                    <div class="step-title">Overall CGPA Rank</div>
-                    <div class="step-value" id="tOverallRank">Global: #0 • Branch: #0</div>
-                </div>
-            </div>
-        </div>
+
 
         <div class="modal-divider"></div>
         
@@ -1310,6 +1282,7 @@
             populateFilters();
             applyFilters();
             renderCharts();
+            handleHashRoute();
         } catch (e) {
             document.getElementById('loadingOverlay').style.display = 'none';
             const errorDiv = document.getElementById('errorOverlay');
@@ -1545,7 +1518,7 @@
         paginatedData.forEach(student => {
             const tr = document.createElement('tr');
             tr.style.cursor = 'pointer';
-            tr.onclick = () => showStudentProfile(student.rollNo);
+            tr.onclick = () => { window.location.hash = student.rollNo; };
             tr.innerHTML = `
                 <td><span class="rank-pill">#${student.cgpaRank}</span></td>
                 <td><span class="rank-pill font-mono" style="background: rgba(168, 85, 247, 0.1); color: var(--secondary); border-color: rgba(168, 85, 247, 0.2);">#${student.branchRank}</span></td>
@@ -1823,11 +1796,6 @@
         document.getElementById('pOverallPct').innerText = `${profile.cgpaPct.toFixed(2)}%`;
         document.getElementById('pOverallBranchPct').innerText = `${profile.cgpaPctBranch.toFixed(2)}%`;
         
-        // Timeline Details
-        document.getElementById('tSem1Rank').innerText = s1.present ? `Global: #${s1.rank} • Branch: #${s1.rankBranch}` : "Not Registered";
-        document.getElementById('tSem2Rank').innerText = s2.present ? `Global: #${s2.rank} • Branch: #${s2.rankBranch}` : "Not Registered";
-        document.getElementById('tOverallRank').innerText = profile.cgpa > 0 ? `Global: #${profile.cgpaRank} • Branch: #${profile.cgpaRankBranch}` : "No Result";
-        
         // Sem 1 Grade Body
         const sem1Body = document.getElementById('sem1GradeBody');
         sem1Body.innerHTML = '';
@@ -1881,10 +1849,22 @@
         setTimeout(() => modal.classList.add('active'), 10);
     }
     
-    function closeProfileModal() {
+    function closeProfileModalDirect() {
         const modal = document.getElementById('profileModal');
-        modal.classList.remove('active');
-        setTimeout(() => modal.style.display = 'none', 300);
+        if (modal && modal.style.display !== 'none') {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+    }
+
+    function closeProfileModal() {
+        if (window.location.hash) {
+            // Remove hash from URL without scroll jump and without triggering hashchange
+            history.pushState("", document.title, window.location.pathname + window.location.search);
+        }
+        closeProfileModalDirect();
     }
     
     function getGradeBadgeClass(grade) {
@@ -1931,6 +1911,23 @@
         const modal = document.getElementById('profileModal');
         if (e.target === modal) closeProfileModal();
     });
+
+    // Hash routing logic
+    function handleHashRoute() {
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+            const profile = studentProfiles[hash];
+            if (profile) {
+                showStudentProfile(hash);
+            } else {
+                closeProfileModalDirect();
+            }
+        } else {
+            closeProfileModalDirect();
+        }
+    }
+
+    window.addEventListener('hashchange', handleHashRoute);
 
     loadData();
 </script>
